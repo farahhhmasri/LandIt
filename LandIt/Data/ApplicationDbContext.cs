@@ -1,6 +1,7 @@
 ﻿using LandIt.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace LandIt.Data
 {
@@ -67,6 +68,12 @@ namespace LandIt.Data
                 .WithMany(r => r.Bookings)
                 .HasForeignKey(b => b.RecruiterId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Recruiter>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<RecruiterReview>()
                 .HasOne(r => r.Recruiter)

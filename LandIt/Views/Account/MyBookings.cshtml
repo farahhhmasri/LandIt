@@ -1,0 +1,33 @@
+﻿@model LandIt.Models.AppUser
+
+
+<div class="app-card mb-3">
+
+    @if (Model.Bookings != null && Model.Bookings.Any())
+    {
+        foreach (var booking in Model.Bookings)
+        {
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface2);border-radius:10px;margin-bottom:8px;">
+                <i class="ti ti-calendar-event" aria-hidden="true" style="font-size:1.2rem;color:var(--blue);flex-shrink:0;"></i>
+                <div style="flex:1;min-width:0;">
+                    <p style="font-size:0.85rem;font-weight:500;color:var(--text);margin:0;">@booking.Recruiter?.FullName</p>
+                    <p style="font-size:0.78rem;color:var(--muted2);margin:0;">@booking.TimeSlot?.StartTime.ToString("MMM dd, yyyy · h:mm tt")</p>
+                </div>
+                <span style="font-size:0.7rem;font-weight:500;padding:3px 8px;border-radius:100px;background:var(--blue-dim);color:var(--blue);">
+                    @booking.Status
+                </span>
+                <a asp-controller="Bookings"
+                   asp-action="CancelBooking"
+                   asp-route-id="@booking.Id"
+                   class="btn-ghost"
+                   style="color:#ef4444;">
+                    Cancel
+                </a>
+            </div>
+        }
+    }
+    else
+    {
+        <p style="font-size:0.85rem;color:var(--muted);text-align:center;padding:1rem 0;">No upcoming bookings. <a href="/Account/Dashboard" style="color:var(--blue);">Book a session</a></p>
+    }
+</div>

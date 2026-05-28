@@ -40,7 +40,7 @@ public class Booking
     [MaxLength(500)]
     public string? MeetingUrl { get; set; }
 
-   
+   public string? Notes { get; set; }
 
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
 

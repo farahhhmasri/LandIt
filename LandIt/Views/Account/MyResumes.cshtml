@@ -1,0 +1,133 @@
+﻿@model LandIt.Models.AppUser
+
+<div class="app-container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem;">
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+
+        <!-- left column - show previous uploads -->
+        <div class="app-card">
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <div>
+                    <div class="sec-title" style="font-size:1.2rem;margin:0;">My Resumes</div>
+                    <div class="step-desc">Manage and analyze your uploaded CVs</div>
+                </div>
+
+                <a class="btn-primary"
+                   asp-controller="ATS"
+                   asp-action="Upload">
+                    + Upload Resume
+                </a>
+            </div>
+
+            <hr style="border:0.5px solid var(--border);margin:1rem 0;" />
+
+            <!-- list of previous resumes -->
+            @if (Model.Resumes != null && Model.Resumes.Any())
+            {
+                foreach (var resume in Model.Resumes)
+                {
+                    <div class="feat-card" style="margin-bottom:0.75rem;">
+
+                        <div style="display:flex;align-items:center;gap:12px;">
+
+                            <div class="feat-icon" style="width:34px;height:34px;font-size:1rem;">
+                                📄
+                            </div>
+
+                            <div style="flex:1;">
+                                <div class="feat-title" style="font-size:0.95rem;">
+                                    @System.IO.Path.GetFileName(resume.FilePath)
+                                </div>
+
+                                <div class="feat-desc">
+                                    @if (resume.ATSResults != null && resume.ATSResults.Any())
+                                    {
+                                        <span>
+                                            ATS Score:
+                                            <strong>
+                                                @resume.ATSResults.OrderByDescending(a => a.CreatedAt).First().Score%
+                                            </strong>
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>No ATS analysis yet</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <a href="@resume.FilePath"
+                               class="btn-ghost"
+                               style="padding:0.4rem 0.8rem;">
+                                ⬇
+                            </a>
+
+                        </div>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="step-desc" style="text-align:center;padding:2rem 0;">
+                    No resumes uploaded yet.
+                </p>
+            }
+
+        </div>
+
+
+        <!-- right column - AI tools -->
+        <div class="app-card">
+
+            <div class="sec-title" style="font-size:1.1rem;">
+                AI Resume Tools
+            </div>
+
+            <p class="step-desc">
+                Optimize your CV and generate ATS-friendly versions using AI.
+            </p>
+
+            <hr style="border:0.5px solid var(--border);margin:1rem 0;" />
+
+            <!-- ATS analyzer -->
+            <a class="feat-card" asp-controller="Ats" asp-action="Index" style="display:block;margin-bottom:1rem;">
+                <div class="feat-icon">📊</div>
+                <div class="feat-title">ATS Score Analyzer</div>
+                <div class="feat-desc">
+                    Check how well your CV performs against job descriptions.
+                </div>
+            </a>
+
+            <!-- resume generator form -->
+            <form asp-controller="ATS"
+                  asp-action="GenerateAICV"
+                  method="post">
+
+                <div style="margin-bottom:1rem;">
+                    <label class="app-label">Job Position</label>
+                    <input class="app-input"
+                           name="position"
+                           placeholder="e.g. Data Analyst, Backend Developer" />
+                </div>
+
+                <div style="margin-bottom:1rem;">
+                    <label class="app-label">Paste CV or Notes</label>
+                    <textarea class="app-input"
+                              name="cvText"
+                              rows="6"
+                              placeholder="Paste your CV or experience here..."></textarea>
+                </div>
+
+                <button class="btn-primary" type="submit" style="width:100%;">
+                    Generate ATS-Friendly CV
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

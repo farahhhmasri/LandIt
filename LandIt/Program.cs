@@ -79,8 +79,9 @@ async Task SeedDataAsync(IServiceProvider services)
 {
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var dbContext = services.GetRequiredService<ApplicationDbContext>();
 
-    // seeding the roles
+    //  ROLES 
     string[] roles = { "Admin", "Recruiter", "Candidate" };
 
     foreach (var role in roles)
@@ -91,7 +92,7 @@ async Task SeedDataAsync(IServiceProvider services)
         }
     }
 
-    // creating admin
+    //  ADMIN 
     string adminEmail = "farahhh.adel@gmail.com";
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
@@ -109,18 +110,13 @@ async Task SeedDataAsync(IServiceProvider services)
 
         var result = await userManager.CreateAsync(adminUser, "Admin123!");
 
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(adminUser, "Admin");
-        }
-        else
-        {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            throw new Exception($"Failed to create admin user: {errors}");
-        }
+        if (!result.Succeeded)
+            throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        await userManager.AddToRoleAsync(adminUser, "Admin");
     }
 
-    // creating recruiter
+    // RECRUITER USER 
     string recruiterEmail = "masrinoor84@gmail.com";
     var recruiterUser = await userManager.FindByEmailAsync(recruiterEmail);
 
@@ -132,19 +128,37 @@ async Task SeedDataAsync(IServiceProvider services)
             UserName = "NoorMasri",
             Email = recruiterEmail,
             EmailConfirmed = true,
+            IsRecruiter = true,
             Region = Region.NorthAmerica,
+            CreatedAt = DateTime.UtcNow,
         };
 
         var result = await userManager.CreateAsync(recruiterUser, "Recruiter123!");
 
-        if (result.Succeeded)
+        if (!result.Succeeded)
+            throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        await userManager.AddToRoleAsync(recruiterUser, "Recruiter");
+    }
+
+    // RECRUITER PROFILE
+    var existingRecruiter = dbContext.Recruiters
+        .FirstOrDefault(r => r.UserId == recruiterUser.Id);
+
+    if (existingRecruiter == null)
+    {
+        var recruiter = new Recruiter
         {
-            await userManager.AddToRoleAsync(recruiterUser, "Recruiter");
-        }
-        else
-        {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            throw new Exception($"Failed to create recruiter user: {errors}");
-        }
+            UserId = recruiterUser.Id,
+            FullName = "Noor Masri",
+            Company = "Amazon",
+            Title = "Senior Talent Acquisition Specialist",
+            Region = Region.NorthAmerica,
+            HourlyRate = 56.88M,
+            Skills = "Communication Skills, HR and labor laws, Data Analysis, Business Analysis, Market Research, Negotiation, Compensation"
+        };
+
+        dbContext.Recruiters.Add(recruiter);
+        await dbContext.SaveChangesAsync();
     }
 }

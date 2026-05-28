@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using LandIt.Models;
 using Microsoft.AspNetCore.Authorization;
+using LandIt.Data;
+using Microsoft.EntityFrameworkCore;
+using LandIt.Models.ViewModels;
 
 namespace LandIt.Controllers
 {
@@ -10,6 +13,20 @@ namespace LandIt.Controllers
     {
         private readonly ILogger<AccountController> _logger;
         private readonly SignInManager<AppUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
+
+
+
+        public AccountController(ILogger<AccountController> logger, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, ApplicationDbContext context, IWebHostEnvironment environment)
+        {
+            _logger = logger;
+            _signInManager = signInManager;
+            _userManager = userManager;
+            _context = context;
+            _environment = environment;
+        }
 
         public IActionResult Login(string? returnUrl = null)
         {
@@ -23,40 +40,260 @@ namespace LandIt.Controllers
 
 
         [Authorize]
-        public IActionResult Profile()
+        public async Task<IActionResult> Profile()
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+            ViewBag.BookingCount = await _context.Bookings.CountAsync(b => b.UserId == user.Id);
+            ViewBag.ResumeCount = await _context.Resumes.CountAsync(r => r.UserId == user.Id);
+            ViewBag.QuestionRequestCount = await _context.QuestionRequests.CountAsync(q => q.UserId == user.Id);
+            ViewBag.RecentBookings  = await _context.Bookings.Where(b => b.UserId == user.Id).Include(b => b.Recruiter).OrderByDescending(b => b.TimeSlot.StartTime).Take(3).ToListAsync();
+            ViewBag.RecentResumes = await _context.Resumes.Where(r => r.UserId == user.Id).Include(r => r.ATSResults).OrderByDescending(r => r.Id).Take(3).ToListAsync();
+            
+            return View(user);
+        }
+
+        private void ClearPasswords(EditProfileViewModel model)
+        {
+            model.CurrentPassword = null;
+            model.NewPassword = null;
+            model.ConfirmPassword = null;
         }
 
         [Authorize]
-        public IActionResult EditProfile()
+        [HttpGet]
+        public async Task<IActionResult> EditProfile()
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return NotFound();
+
+            var model = new EditProfileViewModel
+            {
+                FullName = user.FullName,
+                Email = user.Email,
+                Region = user.Region,
+                PhoneNumber = user.PhoneNumber,
+                ExistingPhotoPath = user.Photo
+            };
+
+            ClearPasswords(model);
+
+            return View(model);
         }
 
         [Authorize]
-        public IActionResult Dashboard()
+        [HttpPost]
+        public async Task<IActionResult> EditProfile(EditProfileViewModel model)
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return NotFound();
+
+            // Password change is optional
+            // Remove validation if NewPassword is empty
+            if (string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                ModelState.Remove(nameof(model.NewPassword));
+                ModelState.Remove(nameof(model.ConfirmPassword));
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ClearPasswords(model);
+                return View(model);
+            }
+
+            // VERIFY CURRENT PASSWORD
+            var passwordValid = await _userManager.CheckPasswordAsync(
+                user,
+                model.CurrentPassword
+            );
+
+            if (!passwordValid)
+            {
+                ModelState.AddModelError(
+                    "CurrentPassword",
+                    "Incorrect password."
+                );
+
+                ClearPasswords(model);
+                return View(model);
+            }
+
+            // KEEP CURRENT IMAGE
+            string imagePath = user.Photo ?? "/images/default-profile.png";
+
+            // IMAGE UPLOAD
+            if (model.Photo != null)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+
+                string extension = Path.GetExtension(model.Photo.FileName).ToLower();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    ModelState.AddModelError(
+                        "Photo",
+                        "Only JPG, JPEG, and PNG files are allowed."
+                    );
+
+                    ClearPasswords(model);
+                    return View(model);
+                }
+
+                if (model.Photo.Length > 2 * 1024 * 1024)
+                {
+                    ModelState.AddModelError(
+                        "Photo",
+                        "File size cannot exceed 2MB."
+                    );
+
+                    ClearPasswords(model);
+                    return View(model);
+                }
+
+                string uploadsFolder = Path.Combine(
+                    _environment.WebRootPath,
+                    "images/users"
+                );
+
+                Directory.CreateDirectory(uploadsFolder);
+
+                string uniqueFileName =
+                    Guid.NewGuid().ToString() + extension;
+
+                string filePath = Path.Combine(
+                    uploadsFolder,
+                    uniqueFileName
+                );
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.Photo.CopyToAsync(stream);
+                }
+
+                imagePath = "/images/users/" + uniqueFileName;
+            }
+
+            // UPDATE USER INFO
+            user.FullName = model.FullName;
+            user.Region = model.Region;
+            user.PhoneNumber = model.PhoneNumber;
+            user.Photo = imagePath;
+
+            // OPTIONAL PASSWORD CHANGE
+            if (!string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                if (model.NewPassword != model.ConfirmPassword)
+                {
+                    ModelState.AddModelError(
+                        "ConfirmPassword",
+                        "Passwords do not match."
+                    );
+
+                    ClearPasswords(model);
+                    return View(model);
+                }
+
+                var passwordResult = await _userManager.ChangePasswordAsync(
+                    user,
+                    model.CurrentPassword,
+                    model.NewPassword
+                );
+
+                if (!passwordResult.Succeeded)
+                {
+                    foreach (var error in passwordResult.Errors)
+                    {
+                        ModelState.AddModelError(
+                            string.Empty,
+                            error.Description
+                        );
+                    }
+
+                    ClearPasswords(model);
+                    return View(model);
+                }
+            }
+
+            // SAVE USER
+            var updateResult = await _userManager.UpdateAsync(user);
+
+            if (!updateResult.Succeeded)
+            {
+                foreach (var error in updateResult.Errors)
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        error.Description
+                    );
+                }
+
+                ClearPasswords(model);
+                return View(model);
+            }
+
+            TempData["ToastMessageSuccess"] =
+                "Your profile was updated successfully!";
+
+            return RedirectToAction("Profile");
         }
 
         [Authorize]
-        public IActionResult MyResumes()
+        public async Task<IActionResult> Dashboard(string?search, Region? region)
         {
-            return View();
+            var query = _context.Recruiters.AsQueryable().Where(r => r.Status == RecruiterStatus.Approved);
+
+            if (region != null)
+                query = query.Where(r => r.Region == region);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim().ToLower();
+
+                query = query.Where(r =>
+                r.FullName.ToLower().Contains(search) ||
+                r.Company.ToLower().Contains(search) ||
+                r.Title.ToLower().Contains(search) ||
+                r.Skills.ToLower().Contains(search)
+               
+                );
+            }
+
+            var model = new DashboardViewModel
+            {
+                Search = search,
+                Recruiters = await query.ToListAsync(),
+                RegionFilter = region,
+
+            };
+
+            return View(model);
         }
 
         [Authorize]
-        public IActionResult MyQuestions()
+        public async Task<IActionResult> MyResumes()
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+            return View(user);
         }
 
 
         [Authorize]
-        public IActionResult MyBookings()
+        public async Task<IActionResult> MyBookings()
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+            return View(user);
+        }
+
+
+        [Authorize]
+        public async Task<IActionResult> MyQuestions()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            return View(user);
         }
     }
 }

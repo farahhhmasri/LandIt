@@ -1,0 +1,128 @@
+﻿@model LandIt.Models.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["UseBootstrap"] = true;
+    ViewData["UseIdentityStyles"] = true;
+}
+
+<div class="app-container">
+
+    <!-- header items - cta buttons -->
+    <div class="feat-grid" style="margin-bottom: 2rem;">
+
+        <a class="feat-card" asp-controller="Account" asp-action="MyResumes" style="text-decoration:none;">
+            <div class="feat-icon">📄</div>
+            <div class="feat-title">ATS Resume Analyzer</div>
+            <div class="feat-desc">
+                Improve and optimize your CV with AI-powered analysis.
+            </div>
+            <div class="feat-arrow">→</div>
+        </a>
+
+        <a class="feat-card" asp-controller="Account" asp-action="MyQuestions" style="text-decoration:none;">
+            <div class="feat-icon">🤖</div>
+            <div class="feat-title">Interview Questions</div>
+            <div class="feat-desc">
+                Generate tailored questions based on role and company.
+            </div>
+            <div class="feat-arrow">→</div>
+        </a>
+
+    </div>
+
+    <div class="app-card" style="margin-bottom:2rem; border-left:4px solid var(--blue);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <div class="feat-title">My Bookings</div>
+                <div class="feat-desc">View upcoming recruiter meetings</div>
+            </div>
+
+            <a class="btn-primary" asp-controller="Account" asp-action="MyBookings">
+                Open
+            </a>
+        </div>
+    </div>
+
+
+    <!-- search section -->
+    <div class="app-card" style="margin-bottom: 2rem;">
+
+        <form method="get" asp-action="Dashboard">
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.75rem;">
+
+                <input class="app-input"
+                       type="text"
+                       name="search"
+                       value="@Model.Search"
+                       placeholder="Search recruiters by name, company, skills..." />
+
+                <select class="app-input"
+                        name="region"
+                        asp-items="Html.GetEnumSelectList<Region>()">
+                    <option value="">All Regions</option>
+                </select>
+
+                <button class="btn-primary" type="submit">
+                    Search
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- recruiters result -->
+    <div class="feat-grid">
+
+        @foreach (var recruiter in Model.Recruiters)
+        {
+            <div class="feat-card">
+
+                <div class="feat-icon">
+                    @recruiter.FullName.Substring(0, 1)
+                </div>
+
+                <div class="feat-title">
+                    @recruiter.FullName
+                </div>
+
+                <div class="feat-desc" style="margin-bottom: 0.75rem;">
+                    @recruiter.Title · @recruiter.Company
+                </div>
+
+                <div style="margin-bottom: 0.75rem;">
+                    <span class="feat-tag">
+                        💰 $@recruiter.HourlyRate/hour
+                    </span>
+                    <span class="feat-tag">
+                        📍 @recruiter.Region
+                    </span>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    @foreach (var skill in recruiter.Skills?.Split(',') ?? new string[0])
+                    {
+                        <span class="feat-tag" style="margin-right: 0.25rem;">
+                            @skill.Trim()
+                        </span>
+                    }
+                </div>
+
+                <a asp-controller="Bookings"
+                   asp-action="Create"
+                   asp-route-recruiterId="@recruiter.Id"
+                   class="btn-primary"
+                   style="width: 100%; display: inline-block; text-align: center;">
+                    Book Meeting
+                </a>
+
+            </div>
+        }
+
+    </div>
+
+</div>
