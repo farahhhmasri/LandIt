@@ -1,0 +1,124 @@
+﻿@model List<LandIt.Models.Booking>
+
+@{
+    ViewData["Title"] = "Bookings";
+    ViewData["UseBootstrap"] = true;
+    ViewData["UseIdentityStyles"] = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5" style="max-width: 900px;">
+
+    <!-- HEADER -->
+    <div style="margin-bottom: 2rem;">
+        <h2 class="sec-title">Your Bookings</h2>
+        <p class="step-desc">
+            Manage interview session requests from candidates.
+        </p>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="app-card" style="text-align:center; padding:2rem;">
+            <p class="step-desc">No bookings yet.</p>
+        </div>
+    }
+    else
+    {
+        <div style="display:flex; flex-direction:column; gap: 1rem;">
+
+            @foreach (var booking in Model)
+            {
+                <div class="app-card">
+
+                    <!-- TOP ROW -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+
+                        <div>
+                            <div style="font-weight:600; font-size:1rem;">
+                                @booking.User?.FullName
+                            </div>
+
+                            <div style="font-size:0.85rem; color:var(--muted);">
+                                @booking.JobTitle
+                                @if (!string.IsNullOrEmpty(booking.CompanyTarget))
+                                {
+                                    <span>• @booking.CompanyTarget</span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- STATUS BADGE -->
+                        <div>
+                            @if (booking.Status == BookingStatus.Pending)
+                            {
+                                <span class="feat-tag" style="background:#fff3cd; color:#856404;">
+                                    Pending
+                                </span>
+                            }
+                            else if (booking.Status == BookingStatus.Confirmed)
+                            {
+                                <span class="feat-tag" style="background:#d1e7dd; color:#0f5132;">
+                                    Confirmed
+                                </span>
+                            }
+                            else if (booking.Status == BookingStatus.Cancelled)
+                            {
+                                <span class="feat-tag" style="background:#f8d7da; color:#842029;">
+                                    Cancelled
+                                </span>
+                            }
+                        </div>
+
+                    </div>
+
+                    <!-- DETAILS -->
+                    <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--muted);">
+
+                        <div>
+                            📅 <strong>Time:</strong>
+                            @booking.TimeSlot?.StartTime.ToString("dd MMM yyyy HH:mm")
+                            -
+                            @booking.TimeSlot?.EndTime.ToString("HH:mm")
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(booking.CandidateNotes))
+                        {
+                            <div style="margin-top:0.5rem;">
+                                📝 <strong>Notes:</strong> @booking.CandidateNotes
+                            </div>
+                        }
+
+                    </div>
+
+                    <!-- ACTIONS -->
+                    @if (booking.Status == BookingStatus.Pending)
+                    {
+                        <div style="margin-top: 1rem; display:flex; gap:10px;">
+
+                            <!-- APPROVE -->
+                            <form asp-action="ApproveBooking" method="post">
+                                <input type="hidden" name="id" value="@booking.Id" />
+                                <button type="submit" class="btn-primary">
+                                    Approve
+                                </button>
+                            </form>
+
+                            <!-- REJECT -->
+                            <form asp-action="RejectBooking" method="post">
+                                <input type="hidden" name="id" value="@booking.Id" />
+                                <button type="submit" class="btn-ghost" style="color:red;">
+                                    Reject
+                                </button>
+                            </form>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

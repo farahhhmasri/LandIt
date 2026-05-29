@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using LandIt.Data;
 using LandIt.Models;
-using Microsoft.AspNetCore.Authorization;
-using LandIt.Data;
-using Microsoft.EntityFrameworkCore;
 using LandIt.Models.ViewModels;
+using LandIt.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LandIt.Controllers
 {
@@ -16,17 +17,43 @@ namespace LandIt.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly NavigationService _nav;
 
 
 
-        public AccountController(ILogger<AccountController> logger, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, ApplicationDbContext context, IWebHostEnvironment environment)
+
+        public AccountController(ILogger<AccountController> logger, SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, ApplicationDbContext context, IWebHostEnvironment environment, NavigationService nav)
         {
             _logger = logger;
             _signInManager = signInManager;
             _userManager = userManager;
             _context = context;
             _environment = environment;
+            _nav = nav;
         }
+
+
+        [Authorize]
+        public async Task<IActionResult> DashboardRouter()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var url = await _nav.GetHomeRouteAsync(user);
+            return Redirect(url);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> ProfileRouter()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return RedirectToAction("Index", "Home");
+
+            var route = await _nav.GetProfileRouteAsync(user);
+
+            return Redirect(route);
+        }
+
 
         public IActionResult Login(string? returnUrl = null)
         {
@@ -39,7 +66,7 @@ namespace LandIt.Controllers
         }
 
 
-        [Authorize]
+        [Authorize(Roles ="Candidate")]
         public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -82,7 +109,7 @@ namespace LandIt.Controllers
             model.ConfirmPassword = null;
         }
 
-        [Authorize]
+        [Authorize(Roles = "Candidate")]
         [HttpGet]
         public async Task<IActionResult> EditProfile()
         {
@@ -105,7 +132,7 @@ namespace LandIt.Controllers
             return View(model);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Candidate")]
         [HttpPost]
         public async Task<IActionResult> EditProfile(EditProfileViewModel model)
         {
@@ -264,7 +291,7 @@ namespace LandIt.Controllers
             return RedirectToAction("Profile");
         }
 
-        [Authorize]
+        [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> Dashboard(string?search, Region? region)
         {
             var query = _context.Recruiters.AsQueryable().Where(r => r.Status == RecruiterStatus.Approved);
@@ -295,6 +322,8 @@ namespace LandIt.Controllers
 
             return View(model);
         }
+
+
 
         [Authorize]
         public async Task<IActionResult> MyResumes()
@@ -336,13 +365,31 @@ namespace LandIt.Controllers
             return View(user);
         }
 
+
         public IActionResult Pricing() => View();
 
+        public async Task<IActionResult> Recruiters()
+        {
+            bool alreadyApplied = false;
 
-        public IActionResult Recruiters() => View();
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user != null)
+                {
+                    alreadyApplied = await _context.Recruiters
+                        .AnyAsync(r => r.UserId == user.Id);
+                }
+            }
+
+            ViewBag.AlreadyApplied = alreadyApplied;
+
+            return View();
+        }
 
 
-        [Authorize]
+        [Authorize(Roles ="Candidate")]
         [HttpPost]
         public async Task<IActionResult> ApplyRecruiter(Recruiter model)
         {
@@ -378,7 +425,7 @@ namespace LandIt.Controllers
             _context.Recruiters.Add(recruiter);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Application submitted successfully!";
+            TempData["ToastMessageSuccess"] = "Application submitted successfully!";
             return RedirectToAction("Recruiters");
         }
 

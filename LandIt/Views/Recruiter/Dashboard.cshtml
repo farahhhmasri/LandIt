@@ -1,0 +1,155 @@
+﻿@model LandIt.Models.ViewModels.RecruiterDashboardViewModel
+@{
+    ViewData["Title"] = "Recruiter Dashboard";
+    ViewData["UseBootstrap"] = true;
+    ViewData["UseIdentityStyles"] = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="app-container">
+
+    <div class="feat-grid" style="margin-bottom:2rem;">
+
+        <!-- recruiter availability-->
+        <a class="feat-card" href="/Recruiter/Availability" style="text-decoration:none;">
+            <div class="feat-icon"><i class="ti ti-calendar-plus" aria-hidden="true"></i></div>
+            <div class="feat-title">Manage Availability</div>
+            <div class="feat-desc">Set your weekly schedule and control which time slots candidates can book.</div>
+            <div class="feat-arrow">→</div>
+        </a>
+
+        <a class="feat-card" href="/Recruiter/Reviews" style="text-decoration:none;">
+            <div class="feat-icon"><i class="ti ti-star" aria-hidden="true"></i></div>
+            <div class="feat-title">Candidate Reviews</div>
+            <div class="feat-desc">See what candidates are saying about your mock interview sessions.</div>
+            <div class="feat-arrow">→</div>
+        </a>
+
+        <!-- Use ATS Resume Analyzer-->
+            <a class="feat-card" href="/ATS/Index" style="text-decoration:none;">
+                <div class="feat-icon"><i class="ti ti-file-text" aria-hidden="true"></i></div>
+                <div class="feat-title">ATS Resume Analyzer</div>
+                <div class="feat-desc">Analyze and optimize resumes with AI — useful for your own profile or helping candidates.</div>
+                <div class="feat-arrow">→</div>
+            </a>
+
+        <!-- Generate interview questions -->
+            <a class="feat-card" href="/Questions/Index" style="text-decoration:none;">
+                <div class="feat-icon"><i class="ti ti-bulb" aria-hidden="true"></i></div>
+                <div class="feat-title">Question Generator</div>
+                <div class="feat-desc">Generate interview questions for roles you frequently interview candidates for.</div>
+                <div class="feat-arrow">→</div>
+            </a>
+
+        </div>
+
+    <!-- stats row-->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="app-card text-center">
+                <i class="ti ti-calendar-event" aria-hidden="true" style="font-size:1.5rem;color:var(--blue);"></i>
+                <p style="font-size:1.5rem;font-weight:600;color:var(--text);margin:4px 0 2px;">@Model.TotalBookings</p>
+                <p style="font-size:0.75rem;color:var(--muted);margin:0;">Total Bookings</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="app-card text-center">
+                <i class="ti ti-clock" aria-hidden="true" style="font-size:1.5rem;color:var(--blue);"></i>
+                <p style="font-size:1.5rem;font-weight:600;color:var(--text);margin:4px 0 2px;">@Model.PendingBookings</p>
+                <p style="font-size:0.75rem;color:var(--muted);margin:0;">Pending</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="app-card text-center">
+                <i class="ti ti-toggle-right" aria-hidden="true" style="font-size:1.5rem;color:var(--blue);"></i>
+                <p style="font-size:1.5rem;font-weight:600;color:var(--text);margin:4px 0 2px;">@Model.ActiveSlots</p>
+                <p style="font-size:0.75rem;color:var(--muted);margin:0;">Active Slots</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="app-card text-center">
+                <i class="ti ti-star" aria-hidden="true" style="font-size:1.5rem;color:var(--blue);"></i>
+                <p style="font-size:1.5rem;font-weight:600;color:var(--text);margin:4px 0 2px;">@Model.AverageRating.ToString("0.0")</p>
+                <p style="font-size:0.75rem;color:var(--muted);margin:0;">Avg Rating (@Model.ReviewsCount)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-card" style="margin-bottom:2rem;border-left:4px solid var(--blue);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <div>
+                <div class="feat-title">Upcoming Sessions</div>
+                <div class="feat-desc">Your next scheduled mock interviews</div>
+            </div>
+            <a href="/Recruiter/Bookings" class="btn-primary">View all</a>
+        </div>
+
+        @if (Model.UpcomingBookings != null && Model.UpcomingBookings.Any())
+        {
+            <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                @foreach (var booking in Model.UpcomingBookings.Take(3))
+                {
+                        <!--Status colors-->
+                        string statusBg    = booking.Status == BookingStatus.Confirmed ? "rgba(34,197,94,0.1)"  : "rgba(251,191,36,0.1)";
+                        string statusColor = booking.Status == BookingStatus.Confirmed ? "#16a34a"              : "#d97706";
+                        string statusLabel = booking.Status.ToString();
+                    
+
+                    <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface2);border-radius:10px;">
+                        <i class="ti ti-calendar-event" aria-hidden="true" style="font-size:1.2rem;color:var(--blue);flex-shrink:0;"></i>
+                        <div style="flex:1;min-width:0;">
+                            <p style="font-size:0.875rem;font-weight:600;color:var(--text);margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                @booking.JobTitle
+                                @if (!string.IsNullOrWhiteSpace(booking.CompanyTarget))
+                                {
+                                    <span style="font-weight:400;color:var(--muted2);"> · @booking.CompanyTarget</span>
+                                }
+                            </p>
+                            <p style="font-size:0.78rem;color:var(--muted2);margin:0;">
+                                @booking.TimeSlot?.StartTime.ToString("MMM dd, yyyy · h:mm tt")
+                            </p>
+                        </div>
+                        <span style="font-size:0.7rem;font-weight:500;padding:3px 8px;border-radius:100px;background:@statusBg;color:@statusColor;flex-shrink:0;">
+                            @statusLabel
+                        </span>
+                        <a href="/Recruiter/SessionDetails/@booking.Id"
+                           class="btn-ghost"
+                           style="font-size:0.78rem;padding:0.35rem 0.75rem;flex-shrink:0;text-decoration:none;">
+                            Open
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="feat-desc" style="text-align:center;padding:1.5rem 0;">
+                No upcoming sessions.
+                <a href="/Recruiter/Availability" style="color:var(--blue);">Set your availability</a> to start receiving bookings.
+            </p>
+        }
+    </div>
+
+        <!--Profile completeness card-->
+    <div class="app-card" style="border-left:4px solid var(--blue);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <div class="feat-title">Your Public Profile</div>
+                <div class="feat-desc">Keep your profile updated to attract more candidates</div>
+            </div>
+            <div style="display:flex;gap:0.5rem;">
+                <a href="/Recruiter/Profile"
+                   class="btn-ghost"
+                   style="text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+                    <i class="ti ti-eye" aria-hidden="true"></i> Preview
+                </a>
+                <a href="/Recruiter/EditProfile"
+                   class="btn-primary"
+                   style="text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+                    <i class="ti ti-edit" aria-hidden="true"></i> Edit
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -22,16 +22,18 @@
         </p>
 
         <div class="hero-ctas">
-            @* <a href="/Account/Register" class="btn-primary">Start for free</a> *@
 
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            <a href="/Account/Dashboard" class="btn-primary btn-large">Go to Dashboard</a>
-        }
-        else
-        {
-            <a href="/Account/Register" class="btn-primary btn-large">Start for free</a>
-        }
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                @* <a href="/Account/Dashboard" class="btn-primary btn-large">Go to Dashboard</a> *@
+            <a href="/Account/DashboardRouter" class="btn-primary btn-large">
+                Go to Dashboard
+            </a>
+            }
+            else
+            {
+                <a href="/Account/Register" class="btn-primary btn-large">Start for free</a>
+            }
 
             <a href="#how-it-works" class="btn-ghost">See how it works →</a>
         </div>
@@ -219,7 +221,6 @@
             function handleEarlyAccess() {
                 var email = document.getElementById('earlyAccessEmail').value;
                 if (!email) return;
-                // TODO: wire up to your early access / newsletter endpoint
                 window.location.href = '/Account/Register?email=' + encodeURIComponent(email);
             }
         </script>

@@ -1,5 +1,7 @@
+using DocumentFormat.OpenXml.Spreadsheet;
 using LandIt.Data;
 using LandIt.Models;
+using LandIt.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -16,7 +18,10 @@ namespace LandIt.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index() => View();
+        public IActionResult Index()
+        {
+            return View();
+        }
 
         public IActionResult Privacy() => View();
 

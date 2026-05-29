@@ -1,0 +1,117 @@
+﻿@model LandIt.Models.Recruiter
+
+@{
+    ViewData["Title"] = "Availability";
+    ViewData["UseBootstrap"] = true;
+    ViewData["UseIdentityStyles"] = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5" style="max-width: 900px;">
+
+    <!-- header -->
+    <div style="margin-bottom: 2rem;">
+        <h2 class="sec-title">Your Availability</h2>
+        <p class="step-desc">
+            Manage when candidates can book sessions with you.
+        </p>
+    </div>
+
+    <!-- add availability -->
+    <div class="app-card" style="margin-bottom: 2rem;">
+        <h4 style="margin-bottom: 1rem;">Add New Time Slot</h4>
+
+        <form asp-action="AddAvailability" method="post">
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+
+                <!-- Day -->
+                <div>
+                    <label class="app-label">Day of Week</label>
+                    <select name="DayOfWeek" class="app-input" required>
+                        <option value="0">Sunday</option>
+                        <option value="1">Monday</option>
+                        <option value="2">Tuesday</option>
+                        <option value="3">Wednesday</option>
+                        <option value="4">Thursday</option>
+                        <option value="5">Friday</option>
+                        <option value="6">Saturday</option>
+                    </select>
+                </div>
+
+                <!-- Timezone -->
+                <div>
+                    <label class="app-label">Time Zone</label>
+                    <input name="TimeZone" class="app-input" value="UTC" readonly/>
+                </div>
+
+                <!-- Start -->
+                <div>
+                    <label class="app-label">Start Time</label>
+                    <input type="time" name="StartTime" class="app-input" required />
+                </div>
+
+                <!-- End -->
+                <div>
+                    <label class="app-label">End Time</label>
+                    <input type="time" name="EndTime" class="app-input" required />
+                </div>
+
+            </div>
+
+            <button type="submit" class="btn-primary" style="margin-top: 1rem; width: 100%;">
+                Add Availability
+            </button>
+
+        </form>
+    </div>
+
+    <!-- availble times -->
+    <div class="app-card">
+
+        <h4 style="margin-bottom: 1rem;">Current Availability</h4>
+
+        @if (Model.Availabilities == null || !Model.Availabilities.Any())
+        {
+            <p class="step-desc">No availability added yet.</p>
+        }
+        else
+        {
+            <div style="display:flex; flex-direction:column; gap: 0.75rem;">
+
+                @foreach (var slot in Model.Availabilities.OrderBy(a => a.DayOfWeek))
+                {
+                    <div class="feat-card"
+                         style="display:flex; justify-content:space-between; align-items:center;">
+
+                        <!-- info -->
+                        <div>
+                            <div style="font-weight:600;">
+                                @slot.DayName
+                            </div>
+
+                            <div style="font-size:0.85rem; color:var(--muted);">
+                                @slot.StartTime.ToString("hh\\:mm") - @slot.EndTime.ToString("hh\\:mm")
+                                • @slot.TimeZone
+                            </div>
+                        </div>
+
+                        <!-- delete slot -->
+                        <form asp-action="RemoveAvailability" method="post">
+                            <input type="hidden" name="id" value="@slot.Id" />
+                            <button type="submit"
+                                    class="btn-ghost"
+                                    style="color:red;">
+                                Remove
+                            </button>
+                        </form>
+
+                    </div>
+                }
+
+            </div>
+        }
+
+    </div>
+
+</div>

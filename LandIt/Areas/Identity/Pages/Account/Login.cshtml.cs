@@ -2,20 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+using LandIt.Data;
+using LandIt.Models;
+using LandIt.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using LandIt.Data;
-using LandIt.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LandIt.Areas.Identity.Pages.Account;
 
@@ -23,11 +24,15 @@ public class LoginModel : PageModel
 {
     private readonly SignInManager<AppUser> _signInManager;
     private readonly ILogger<LoginModel> _logger;
+    private readonly NavigationService _navService;
+    private readonly UserManager<AppUser> _userManager;
 
-    public LoginModel(SignInManager<AppUser> signInManager, ILogger<LoginModel> logger)
+    public LoginModel(SignInManager<AppUser> signInManager, ILogger<LoginModel> logger, NavigationService navService, UserManager<AppUser> userManager)
     {
         _signInManager = signInManager;
         _logger = logger;
+        _navService = navService;
+        _userManager = userManager;
     }
 
     /// <summary>
@@ -117,7 +122,18 @@ public class LoginModel : PageModel
             if (result.Succeeded)
             {
                 _logger.LogInformation("User logged in.");
-                return LocalRedirect(returnUrl);
+
+                var user = await _userManager.GetUserAsync(User);
+                
+                if (user == null)
+                {
+                    _logger.LogWarning("Login succeeded but user was not found in DB.");
+                    return RedirectToPage("/Account/Login");
+                }
+
+                var redirectUrl = await _navService.GetHomeRouteAsync(user);
+
+                return LocalRedirect(redirectUrl);
             }
             if (result.RequiresTwoFactor)
             {

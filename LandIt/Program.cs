@@ -41,6 +41,11 @@ builder.Services.AddScoped<GroqService>();
 builder.Services.AddScoped<ResumeExtractorService>();
 builder.Services.AddScoped<ResumePdfBuilder>();
 
+
+// To be used for redirecting users to their respective dashboards after login
+builder.Services.AddScoped<NavigationService>();
+
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

@@ -1,0 +1,58 @@
+﻿@model IEnumerable<LandIt.Models.RecruiterReview>
+
+@{
+    ViewData["Title"] = "Reviews";
+    ViewData["UseBootstrap"] = true;
+    ViewData["UseIdentityStyles"] = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var avgRating = Model.Any() ? Model.Average(r => r.Rating) : 0;
+}
+
+<div class="app-container">
+
+    <!-- HEADER -->
+    <div class="app-card">
+        <h2 class="sec-title">Your Reviews</h2>
+
+        <p class="step-desc">
+            Average Rating:
+            <strong>@avgRating.ToString("0.0") / 5</strong>
+        </p>
+    </div>
+
+    <!-- REVIEWS LIST -->
+    <div class="app-card">
+
+        @if (!Model.Any())
+        {
+            <p class="step-desc">No reviews yet.</p>
+        }
+        else
+        {
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+                @foreach (var review in Model)
+                {
+                    <div class="feat-card">
+
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>@review.User?.FullName</strong>
+                            <span>⭐ @review.Rating</span>
+                        </div>
+
+                        <p class="step-desc" style="margin-top:0.5rem;">
+                            @review.Comment
+                        </p>
+
+                        <small style="color:var(--muted);">
+                            @review.CreatedAt.ToString("dd MMM yyyy")
+                        </small>
+
+                    </div>
+                }
+            </div>
+        }
+
+    </div>
+
+</div>

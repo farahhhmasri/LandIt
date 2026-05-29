@@ -1,0 +1,52 @@
+﻿@model LandIt.Models.Booking
+
+@{
+    ViewData["Title"] = "Session Details";
+    ViewData["UseBootstrap"] = true;
+    ViewData["UseIdentityStyles"] = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="app-container">
+
+    <div class="app-card" style="margin-bottom:1rem;">
+        <h2 class="sec-title">@Model.JobTitle</h2>
+        <p class="step-desc">@Model.CompanyTarget</p>
+
+        <div style="margin-top:0.5rem; color:var(--muted);">
+            Status: <strong>@Model.Status</strong>
+        </div>
+    </div>
+
+    <!-- SESSION INFO -->
+    <div class="app-card">
+        <div class="sec-title" style="font-size:1.1rem;">Session Info</div>
+
+        <p><strong>Candidate:</strong> @Model.User?.FullName</p>
+        <p><strong>Time:</strong> @Model.TimeSlot?.StartTime.ToString("dd MMM yyyy HH:mm")</p>
+        <p>
+            <strong>Meeting Link:</strong>
+            <a href="@Model.MeetingUrl" target="_blank">Join Session</a>
+        </p>
+
+        <p><strong>Candidate Notes:</strong></p>
+        <p class="step-desc">@Model.CandidateNotes</p>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="app-card" style="margin-top:1rem; display:flex; gap:1rem;">
+
+        @if (Model.Status == BookingStatus.Confirmed)
+        {
+            <form method="post" asp-action="CompleteSession" asp-route-id="@Model.Id">
+                <button class="btn-primary">Mark as Completed</button>
+            </form>
+        }
+
+        <a class="btn-ghost" href="@Url.Action("Dashboard", "Recruiter")">
+            Back
+        </a>
+
+    </div>
+
+</div>

@@ -84,8 +84,27 @@
 <!-- Apply Form / CTA -->
 <section id="apply" class="cta-section" style="padding-top: 2rem; padding-bottom: 5rem;">
 
-
     @if (User.Identity != null && User.Identity.IsAuthenticated)
+{
+    if (ViewBag.AlreadyApplied == true)
+    {
+        <div class="app-card"
+             style="max-width:480px;margin:0 auto;text-align:center;">
+
+            <div class="feat-icon" style="font-size:2rem;">✅</div>
+
+            <h3 style="margin-top:1rem;">
+                Application Submitted
+            </h3>
+
+            <p class="step-desc">
+                Your recruiter application is currently under review.
+                We’ll contact you once it has been approved.
+            </p>
+
+        </div>
+    }
+    else
     {
         <div style="max-width: 480px; margin: 0 auto;">
             <form method="post"
@@ -94,34 +113,38 @@
                   class="app-card"
                   style="padding: 0; border: none; background: transparent; text-align: left;">
 
-                <div style="margin-bottom: 1rem;">
-                    <label class="app-label">Company</label>
-                    <input type="text" name="Company" class="app-input" required />
-                </div>
 
-                <div style="margin-bottom: 1rem;">
-                    <label class="app-label">Title</label>
-                    <input type="text" name="Title" class="app-input" required />
-                </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label class="app-label">Company</label>
+                        <input type="text" name="Company" class="app-input" required />
+                    </div>
 
-                <div style="margin-bottom: 1rem;">
-                    <label class="app-label">Hourly Rate</label>
-                    <input type="number" step="0.01" name="HourlyRate" class="app-input" required />
-                </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label class="app-label">Title</label>
+                        <input type="text" name="Title" class="app-input" required />
+                    </div>
 
-                <div style="margin-bottom: 1rem;">
-                    <label class="app-label">Skills</label>
-                    <small style="display: block; color: var(--muted); margin-bottom: 0.25rem;">
-                        List your skills separated by commas.
-                    </small>
-                    <textarea name="Skills" class="app-input" rows="3"></textarea>
-                </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label class="app-label">Hourly Rate</label>
+                        <input type="number" step="0.01" name="HourlyRate" class="app-input" required />
+                    </div>
 
-                <button type="submit" class="btn-primary" style="width:100%;">
-                    Submit Application
-                </button>
+                    <div style="margin-bottom: 1rem;">
+                        <label class="app-label">Skills</label>
+                        <small style="display: block; color: var(--muted); margin-bottom: 0.25rem;">
+                            List your skills separated by commas.
+                        </small>
+                        <textarea name="Skills" class="app-input" rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="width:100%;">
+                        Submit Application
+                    </button>
+
             </form>
         </div>
     }
-
+}
+    
 </section>
+
