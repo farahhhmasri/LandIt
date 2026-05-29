@@ -1,4 +1,11 @@
-﻿@model LandIt.Models.AppUser
+﻿@model IEnumerable<LandIt.Models.Resume>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["UseBootstrap"] = true;
+    ViewData["UseIdentityStyles"] = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
 
 <div class="app-container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem;">
 
@@ -15,7 +22,7 @@
 
                 <a class="btn-primary"
                    asp-controller="ATS"
-                   asp-action="Upload">
+                   asp-action="Index">
                     + Upload Resume
                 </a>
             </div>
@@ -23,9 +30,10 @@
             <hr style="border:0.5px solid var(--border);margin:1rem 0;" />
 
             <!-- list of previous resumes -->
-            @if (Model.Resumes != null && Model.Resumes.Any())
+
+            @if (Model != null && Model.Any())
             {
-                foreach (var resume in Model.Resumes)
+                foreach (var resume in Model)
                 {
                     <div class="feat-card" style="margin-bottom:0.75rem;">
 
@@ -92,7 +100,7 @@
             <hr style="border:0.5px solid var(--border);margin:1rem 0;" />
 
             <!-- ATS analyzer -->
-            <a class="feat-card" asp-controller="Ats" asp-action="Index" style="display:block;margin-bottom:1rem;">
+            <a class="feat-card" style="display:block;margin-bottom:1rem;pointer-events: none; text-decoration:none;">
                 <div class="feat-icon">📊</div>
                 <div class="feat-title">ATS Score Analyzer</div>
                 <div class="feat-desc">

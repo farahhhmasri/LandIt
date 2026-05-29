@@ -2,6 +2,7 @@ using LandIt.Data;
 using LandIt.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using LandIt.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,17 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = "/Identity/Account/Logout";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
+
+
+// to be used by the ATS score and the resume builder
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+builder.Services.AddHttpClient<GroqService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+builder.Services.AddScoped<GroqService>();
+builder.Services.AddScoped<ResumeExtractorService>();
+builder.Services.AddScoped<ResumePdfBuilder>();
 
 var app = builder.Build();
 

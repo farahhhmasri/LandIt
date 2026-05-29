@@ -9,6 +9,8 @@
 
         public string QuestionText { get; set; }
 
-        public string Category { get; set; } 
+        public string Category { get; set; }
+
+        public string? Tip { get; set; }
     }
 }

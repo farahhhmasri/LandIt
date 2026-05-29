@@ -3,6 +3,9 @@
 @{
     ViewData["Title"] = "My Questions";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["UseBootstrap"] = true;
+    ViewData["UseIdentityStyles"] = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="app-container">
@@ -66,10 +69,10 @@
                 {
                     <div style="margin-bottom:1rem;">
                         <div class="feat-title" style="font-size:0.9rem;">
-                            Job Description
+                            Job Title
                         </div>
                         <div class="feat-desc">
-                            @q.JobDescription
+                            @q.JobTitle
                         </div>
                     </div>
                 }
@@ -128,13 +131,7 @@
             <p class="step-desc">
                 You haven’t generated any interview questions yet.
             </p>
-            @* <br />
-            <br />
-            <a class="btn-primary"
-               asp-controller="Questions"
-               asp-action="Index">
-                Generate Your First Questions
-            </a> *@
+
         </div>
     }
 

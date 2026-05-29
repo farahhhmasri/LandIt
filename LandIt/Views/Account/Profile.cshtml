@@ -38,6 +38,17 @@
                                         <i class="ti ti-edit" aria-hidden="true"></i> Edit Profile
                                     </a>
 
+
+                                    @if (ViewBag.CanAddTestimonial == true)
+                                    {
+                                        <a href="/Testimonial/Create"
+                                           class="btn-ghost"
+                                           style="display:flex;align-items:center;justify-content:center;gap:6px;padding:0.5rem;">
+                                            <i class="ti ti-message-star" aria-hidden="true"></i> Add Testimonial
+                                        </a>
+                                    }
+
+
                                     <form asp-area="Identity" asp-page="/Account/Logout" method="post" style="margin:0;">
                                         <button type="submit" class="btn-ghost" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:0.5rem;">
                                             <i class="ti ti-logout" aria-hidden="true"></i> Logout
@@ -76,21 +87,27 @@
                 <div class="col-4">
                     <div class="app-card text-center">
                         <i class="ti ti-calendar-event" aria-hidden="true" style="font-size:1.5rem;color:var(--blue);"></i>
-                        <p style="font-size:1.5rem;font-weight:600;color:var(--text);margin:4px 0 2px;">@ViewBag.BookingsCount</p>
+                        <p style="font-size:1.5rem;font-weight:600;color:var(--text);margin:4px 0 2px;">
+                            @(ViewBag.BookingsCount ?? 0)
+                        </p>
                         <p style="font-size:0.75rem;color:var(--muted);margin:0;">Bookings</p>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="app-card text-center">
                         <i class="ti ti-file" aria-hidden="true" style="font-size:1.5rem;color:var(--blue);"></i>
-                        <p style="font-size:1.5rem;font-weight:600;color:var(--text);margin:4px 0 2px;">@ViewBag.ResumesCount</p>
+                        <p style="font-size:1.5rem;font-weight:600;color:var(--text);margin:4px 0 2px;">
+                            @(ViewBag.ResumesCount ?? 0)
+                        </p>
                         <p style="font-size:0.75rem;color:var(--muted);margin:0;">Resumes</p>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="app-card text-center">
                         <i class="ti ti-bulb" aria-hidden="true" style="font-size:1.5rem;color:var(--blue);"></i>
-                        <p style="font-size:1.5rem;font-weight:600;color:var(--text);margin:4px 0 2px;">@ViewBag.QuestionsCount</p>
+                        <p style="font-size:1.5rem;font-weight:600;color:var(--text);margin:4px 0 2px;">
+                            @(ViewBag.QuestionsCount ?? 0)
+                        </p>
                         <p style="font-size:0.75rem;color:var(--muted);margin:0;">Question sets</p>
                     </div>
                 </div>

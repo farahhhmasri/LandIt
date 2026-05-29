@@ -33,9 +33,9 @@ namespace LandIt.Controllers
             return Redirect($"/Identity/Account/Login?returnUrl={returnUrl}"); // so the user returns to the page they were trying to access after logging in
         }
 
-        public IActionResult Register()
+        public IActionResult Register(string? returnUrl = null)
         {
-            return Redirect("/Identity/Account/Register");
+            return Redirect($"/Identity/Account/Register?returnUrl={returnUrl}");
         }
 
 
@@ -43,12 +43,35 @@ namespace LandIt.Controllers
         public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
-            ViewBag.BookingCount = await _context.Bookings.CountAsync(b => b.UserId == user.Id);
-            ViewBag.ResumeCount = await _context.Resumes.CountAsync(r => r.UserId == user.Id);
-            ViewBag.QuestionRequestCount = await _context.QuestionRequests.CountAsync(q => q.UserId == user.Id);
-            ViewBag.RecentBookings  = await _context.Bookings.Where(b => b.UserId == user.Id).Include(b => b.Recruiter).OrderByDescending(b => b.TimeSlot.StartTime).Take(3).ToListAsync();
-            ViewBag.RecentResumes = await _context.Resumes.Where(r => r.UserId == user.Id).Include(r => r.ATSResults).OrderByDescending(r => r.Id).Take(3).ToListAsync();
-            
+            if (user == null) return Unauthorized();
+
+            // Stats from DB
+            ViewBag.BookingsCount = await _context.Bookings.CountAsync(b => b.UserId == user.Id);
+            ViewBag.ResumesCount = await _context.Resumes.CountAsync(r => r.UserId == user.Id);
+            ViewBag.QuestionsCount = await _context.QuestionRequests.CountAsync(q => q.UserId == user.Id);
+
+            // Upcoming bookings — confirmed or pending, future slots only
+            ViewBag.UpcomingBookings = await _context.Bookings
+                .Where(b => b.UserId == user.Id &&
+                            (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending) &&
+                            b.TimeSlot.StartTime > DateTime.UtcNow)
+                .Include(b => b.Recruiter)
+                .Include(b => b.TimeSlot)
+                .OrderBy(b => b.TimeSlot.StartTime)
+                .Take(3)
+                .ToListAsync();
+
+            // Recent resumes with ATS results
+            ViewBag.RecentResumes = await _context.Resumes
+                .Where(r => r.UserId == user.Id)
+                .Include(r => r.ATSResults)
+                .OrderByDescending(r => r.Id)
+                .Take(3)
+                .ToListAsync();
+
+            ViewBag.CanAddTestimonial = await _context.Resumes.AnyAsync(r => r.UserId == user.Id)
+                         || await _context.QuestionRequests.AnyAsync(q => q.UserId == user.Id);
+
             return View(user);
         }
 
@@ -277,7 +300,15 @@ namespace LandIt.Controllers
         public async Task<IActionResult> MyResumes()
         {
             var user = await _userManager.GetUserAsync(User);
-            return View(user);
+            if (user == null) return Unauthorized();
+
+            var resumes = await _context.Resumes
+                .Where(r => r.UserId == user.Id)
+                .Include(r => r.ATSResults)
+                .OrderByDescending(r => r.Id)
+                .ToListAsync();
+
+            return View(resumes);
         }
 
 
@@ -292,8 +323,64 @@ namespace LandIt.Controllers
         [Authorize]
         public async Task<IActionResult> MyQuestions()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var userId = _userManager.GetUserId(User);
+
+            var user = await _userManager.Users
+                .Include(u => u.QuestionRequests)
+                    .ThenInclude(q => q.GeneratedQuestions)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return Unauthorized();
+
             return View(user);
         }
+
+        public IActionResult Pricing() => View();
+
+
+        public IActionResult Recruiters() => View();
+
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> ApplyRecruiter(Recruiter model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            bool exists = _context.Recruiters.Any(r => r.UserId == user.Id);
+
+            if (exists)
+            {
+                TempData["Error"] = "You already applied.";
+                return RedirectToAction("Recruiters");
+            }
+
+            var recruiter = new Recruiter
+            {
+                UserId = user.Id,
+
+                FullName = user.FullName,
+                Region = user.Region,
+
+                Company = model.Company,
+                Title = model.Title,
+                HourlyRate = model.HourlyRate,
+                Skills = model.Skills,
+
+                Status = RecruiterStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Recruiters.Add(recruiter);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Application submitted successfully!";
+            return RedirectToAction("Recruiters");
+        }
+
     }
 }

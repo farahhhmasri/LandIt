@@ -22,7 +22,17 @@
         </p>
 
         <div class="hero-ctas">
-            <a href="/Account/Register" class="btn-primary">Start for free</a>
+            @* <a href="/Account/Register" class="btn-primary">Start for free</a> *@
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a href="/Account/Dashboard" class="btn-primary btn-large">Go to Dashboard</a>
+        }
+        else
+        {
+            <a href="/Account/Register" class="btn-primary btn-large">Start for free</a>
+        }
+
             <a href="#how-it-works" class="btn-ghost">See how it works →</a>
         </div>
     </section>

@@ -61,6 +61,11 @@ namespace LandIt.Data
                 .HasConversion<string>();
 
 
+            builder.Entity<Testimonial>()
+                .Property(t => t.Source)
+                .HasConversion<string>();
+
+
             // Prevent cascade delete cycles
             // (AppUser → Booking → Recruiter would cause multiple cascade paths)
             builder.Entity<Booking>()

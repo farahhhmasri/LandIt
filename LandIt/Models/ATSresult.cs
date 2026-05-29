@@ -12,6 +12,8 @@
         public double Score { get; set; }
 
         public string Suggestions { get; set; }
+        public string? KeywordMatches { get; set; }  
+        public string? MissingKeywords { get; set; } 
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
