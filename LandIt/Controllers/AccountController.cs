@@ -365,9 +365,6 @@ namespace LandIt.Controllers
             return View(user);
         }
 
-
-        public IActionResult Pricing() => View();
-
         public async Task<IActionResult> Recruiters()
         {
             bool alreadyApplied = false;

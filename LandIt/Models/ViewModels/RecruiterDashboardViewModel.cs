@@ -13,4 +13,8 @@ public class RecruiterDashboardViewModel
     public double AverageRating { get; set; }
 
     public List<Booking> UpcomingBookings { get; set; } = new();
+
+    // Other recruiters to browse and book
+    public List<Recruiter> OtherRecruiters { get; set; } = new();
+    public string? Search { get; set; }
 }

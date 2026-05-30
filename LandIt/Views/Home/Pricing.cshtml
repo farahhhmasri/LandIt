@@ -5,6 +5,7 @@
     ViewData["UseIdentityStyles"] = true;
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+@inject Microsoft.AspNetCore.Identity.UserManager<LandIt.Models.AppUser> UserManager
 
 
 <section class="hero" style="padding-bottom: 2rem;">
@@ -21,8 +22,20 @@
         The only time you pay is when you book a one-on-one session with a recruiter to sharpen your interview skills.
     </p>
     <div class="hero-ctas">
-        @* <a href="/Home/Register" class="btn-primary">Get Started Free</a> *@
-        <a href="/Account/Dashboard" class="btn-ghost">View Coaching Rates</a>
+        
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a href="/Account/DashboardRouter" class="btn-primary btn-large" style="text-decoration:none;">
+                View Coaching Rates
+            </a>
+        }
+        else
+        {
+            <a href="/Identity/Account/Login?returnUrl=Home/Pricing" class="btn-primary btn-large" style="text-decoration:none;">
+                View Coaching Rates
+            </a>
+        }
+
     </div>
 </section>
 

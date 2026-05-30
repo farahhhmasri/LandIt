@@ -28,41 +28,49 @@ namespace LandIt.Controllers
             _signInManager = signInManager;
         }
 
-
-        [HttpGet]
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Dashboard(string? search)
         {
-            var userId = _userManager.GetUserId(User);
-
+            var user = await _userManager.GetUserAsync(User);
             var recruiter = await _db.Recruiters
-                .Include(r => r.Bookings)
-                .Include(r => r.TimeSlots)
-                .Include(r => r.Reviews)
-                .Include(r => r.Availabilities)
-                .FirstOrDefaultAsync(r => r.UserId == userId);
+                .FirstOrDefaultAsync(r => r.UserId == user.Id);
 
-            if (recruiter == null)
-                return RedirectToAction("Recruiters", "Account");
+            if (recruiter == null) return RedirectToAction("ApplyAsRecruiter", "Account");
 
-            var upcomingBookings = recruiter.Bookings
-                .Where(b => b.Status == BookingStatus.Pending || b.Status == BookingStatus.Confirmed)
-                .OrderBy(b => b.CreatedAt)
-                .ToList();
+            var query = _db.Recruiters
+                .Where(r => r.Id != recruiter.Id && r.Status == RecruiterStatus.Approved);
 
-            var model = new RecruiterDashboardViewModel
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(r =>
+                    r.FullName.ToLower().Contains(s) ||
+                    r.Company.ToLower().Contains(s) ||
+                    r.Title.ToLower().Contains(s) ||
+                    (r.Skills != null && r.Skills.ToLower().Contains(s)));
+            }
+
+            var vm = new RecruiterDashboardViewModel
             {
                 Recruiter = recruiter,
-                TotalBookings = recruiter.Bookings?.Count ?? 0,
-                PendingBookings = recruiter.Bookings?.Count(b => b.Status == BookingStatus.Pending) ?? 0,
-                UpcomingBookings = upcomingBookings,
-                ActiveSlots = recruiter.TimeSlots?.Count(t => t.IsActive) ?? 0,
-                ReviewsCount = recruiter.Reviews?.Count ?? 0,
-                AverageRating = recruiter.Reviews != null && recruiter.Reviews.Any()
-                    ? recruiter.Reviews.Average(r => r.Rating)
-                    : 0
+                TotalBookings = await _db.Bookings.CountAsync(b => b.RecruiterId == recruiter.Id),
+                PendingBookings = await _db.Bookings.CountAsync(b => b.RecruiterId == recruiter.Id && b.Status == BookingStatus.Pending),
+                ActiveSlots = await _db.TimeSlots.CountAsync(t => t.RecruiterId == recruiter.Id && !t.IsBooked && t.IsActive),
+                ReviewsCount = await _db.RecruiterReviews.CountAsync(r => r.RecruiterId == recruiter.Id),
+                AverageRating = await _db.RecruiterReviews.Where(r => r.RecruiterId == recruiter.Id).AverageAsync(r => (double?)r.Rating) ?? 0,
+                UpcomingBookings = await _db.Bookings
+                    .Where(b => b.RecruiterId == recruiter.Id &&
+                                (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending) &&
+                                b.TimeSlot.StartTime > DateTime.UtcNow)
+                    .Include(b => b.User)
+                    .Include(b => b.TimeSlot)
+                    .OrderBy(b => b.TimeSlot.StartTime)
+                    .Take(3)
+                    .ToListAsync(),
+                OtherRecruiters = await query.ToListAsync(),
+                Search = search
             };
 
-            return View(model);
+            return View(vm);
         }
 
 
@@ -185,6 +193,50 @@ namespace LandIt.Controllers
         }
 
 
+        private async Task GenerateTimeSlotsAsync(RecruiterAvailability availability)
+        {
+            var today = DateTime.UtcNow.Date;
+
+            // Generate slots for next 7 days
+            for (int i = 0; i < 7; i++)
+            {
+                var date = today.AddDays(i);
+
+                if ((int)date.DayOfWeek != availability.DayOfWeek)
+                    continue;
+
+                var currentTime = availability.StartTime;
+
+                while (currentTime.AddHours(1) <= availability.EndTime)
+                {
+                    var slotStart = date.Add(currentTime.ToTimeSpan());
+                    var slotEnd = slotStart.AddHours(1);
+
+                    bool exists = await _db.TimeSlots.AnyAsync(t =>
+                        t.RecruiterId == availability.RecruiterId &&
+                        t.StartTime == slotStart);
+
+                    if (!exists)
+                    {
+                        _db.TimeSlots.Add(new TimeSlot
+                        {
+                            RecruiterId = availability.RecruiterId,
+                            RecruiterAvailabilityId = availability.Id,
+                            StartTime = slotStart,
+                            EndTime = slotEnd,
+                            IsBooked = false,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+
+                    currentTime = currentTime.AddHours(1);
+                }
+            }
+
+            await _db.SaveChangesAsync();
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> Availability()
@@ -241,6 +293,7 @@ namespace LandIt.Controllers
 
             _db.RecruiterAvailabilities.Add(availability);
             await _db.SaveChangesAsync();
+            await GenerateTimeSlotsAsync(availability);
 
             TempData["ToastMessageSuccess"] = "Availability added successfully!";
             return RedirectToAction(nameof(Availability));
@@ -270,7 +323,26 @@ namespace LandIt.Controllers
                 return RedirectToAction(nameof(Availability));
             }
 
+            var bookedSlots = await _db.TimeSlots.AnyAsync(t =>
+                                                            t.RecruiterAvailabilityId == availability.Id &&
+                                                            t.IsBooked);
+
+            if (bookedSlots)
+            {
+                TempData["Error"] =
+                    "This availability contains booked sessions and cannot be removed.";
+
+                return RedirectToAction(nameof(Availability));
+            }
+
+            var slots = await _db.TimeSlots
+                .Where(t => t.RecruiterAvailabilityId == availability.Id)
+                .ToListAsync();
+
+            _db.TimeSlots.RemoveRange(slots);
+
             _db.RecruiterAvailabilities.Remove(availability);
+
             await _db.SaveChangesAsync();
 
             TempData["ToastMessageSuccess"] = "Availability removed successfully!";

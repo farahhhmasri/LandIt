@@ -144,7 +144,6 @@ namespace LandIt.Controllers
             return RedirectToAction("MyBookings", "Account");
         }
 
-
         // Cancel Booking
         [HttpPost]
         public async Task<IActionResult> CancelBooking(int id)

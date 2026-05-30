@@ -6,11 +6,16 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    .app-container { max-width: 1140px; }
+</style>
+
 <div class="app-container">
 
+    <!--CTA buttons - website services and availability-->
     <div class="feat-grid" style="margin-bottom:2rem;">
 
-        <!-- recruiter availability-->
+        <!-- recruiter availability -->
         <a class="feat-card" href="/Recruiter/Availability" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-calendar-plus" aria-hidden="true"></i></div>
             <div class="feat-title">Manage Availability</div>
@@ -18,6 +23,7 @@
             <div class="feat-arrow">→</div>
         </a>
 
+        <!-- recruiter reviews -->
         <a class="feat-card" href="/Recruiter/Reviews" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-star" aria-hidden="true"></i></div>
             <div class="feat-title">Candidate Reviews</div>
@@ -25,23 +31,23 @@
             <div class="feat-arrow">→</div>
         </a>
 
-        <!-- Use ATS Resume Analyzer-->
-            <a class="feat-card" href="/ATS/Index" style="text-decoration:none;">
-                <div class="feat-icon"><i class="ti ti-file-text" aria-hidden="true"></i></div>
-                <div class="feat-title">ATS Resume Analyzer</div>
-                <div class="feat-desc">Analyze and optimize resumes with AI — useful for your own profile or helping candidates.</div>
-                <div class="feat-arrow">→</div>
-            </a>
+        <!-- Use ATS Resume Analyzer -->
+        <a class="feat-card" href="/ATS/Index" style="text-decoration:none;">
+            <div class="feat-icon"><i class="ti ti-file-text" aria-hidden="true"></i></div>
+            <div class="feat-title">ATS Resume Analyzer</div>
+            <div class="feat-desc">Analyze and optimize resumes with AI — useful for your own profile or helping candidates.</div>
+            <div class="feat-arrow">→</div>
+        </a>
 
         <!-- Generate interview questions -->
-            <a class="feat-card" href="/Questions/Index" style="text-decoration:none;">
-                <div class="feat-icon"><i class="ti ti-bulb" aria-hidden="true"></i></div>
-                <div class="feat-title">Question Generator</div>
-                <div class="feat-desc">Generate interview questions for roles you frequently interview candidates for.</div>
-                <div class="feat-arrow">→</div>
-            </a>
+        <a class="feat-card" href="/Questions/Index" style="text-decoration:none;">
+            <div class="feat-icon"><i class="ti ti-message-question" aria-hidden="true"></i></div>
+            <div class="feat-title">Interview Questions</div>
+            <div class="feat-desc">Generate tailored questions for any role or industry to help candidates prepare.</div>
+            <div class="feat-arrow">→</div>
+        </a>
 
-        </div>
+    </div>
 
     <!-- stats row-->
     <div class="row g-3 mb-4">
@@ -75,6 +81,7 @@
         </div>
     </div>
 
+    <!--Upcoming Sessions-->
     <div class="app-card" style="margin-bottom:2rem;border-left:4px solid var(--blue);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
             <div>
@@ -89,11 +96,9 @@
             <div style="display:flex;flex-direction:column;gap:0.75rem;">
                 @foreach (var booking in Model.UpcomingBookings.Take(3))
                 {
-                        <!--Status colors-->
-                        string statusBg    = booking.Status == BookingStatus.Confirmed ? "rgba(34,197,94,0.1)"  : "rgba(251,191,36,0.1)";
-                        string statusColor = booking.Status == BookingStatus.Confirmed ? "#16a34a"              : "#d97706";
-                        string statusLabel = booking.Status.ToString();
-                    
+                    string statusBg    = booking.Status == BookingStatus.Confirmed ? "rgba(34,197,94,0.1)"  : "rgba(251,191,36,0.1)";
+                    string statusColor = booking.Status == BookingStatus.Confirmed ? "#16a34a"              : "#d97706";
+                    string statusLabel = booking.Status.ToString();
 
                     <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface2);border-radius:10px;">
                         <i class="ti ti-calendar-event" aria-hidden="true" style="font-size:1.2rem;color:var(--blue);flex-shrink:0;"></i>
@@ -130,19 +135,14 @@
         }
     </div>
 
-        <!--Profile completeness card-->
-    <div class="app-card" style="border-left:4px solid var(--blue);">
+    <!--Profile card-->
+    <div class="app-card" style="border-left:4px solid var(--blue);margin-bottom:2rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
             <div>
                 <div class="feat-title">Your Public Profile</div>
                 <div class="feat-desc">Keep your profile updated to attract more candidates</div>
             </div>
             <div style="display:flex;gap:0.5rem;">
-                <a href="/Recruiter/Profile"
-                   class="btn-ghost"
-                   style="text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
-                    <i class="ti ti-eye" aria-hidden="true"></i> Preview
-                </a>
                 <a href="/Recruiter/EditProfile"
                    class="btn-primary"
                    style="text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
@@ -150,6 +150,106 @@
                 </a>
             </div>
         </div>
+    </div>
+
+    <!--Browse other recruiters-->
+    <div class="app-card" style="margin-top:2rem;">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:0.5px solid var(--border);">
+            <div>
+                <div class="feat-title">Book a Session with Another Recruiter</div>
+                <div class="feat-desc">Practice with peers — get a fresh perspective on your interviewing skills</div>
+            </div>
+        </div>
+
+        <!--Search-->
+        <form method="get" asp-action="Dashboard" style="margin-bottom:1.5rem;">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:0.75rem;">
+                <input class="app-input"
+                       type="text"
+                       name="search"
+                       value="@Model.Search"
+                       placeholder="Search by name, company, title or skills..." />
+                <button class="btn-primary" type="submit"
+                        style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+                    <i class="ti ti-search" aria-hidden="true"></i> Search
+                </button>
+            </div>
+        </form>
+
+        @if (!Model.OtherRecruiters.Any())
+        {
+            <div style="text-align:center;padding:2rem 1rem;">
+                <i class="ti ti-users-group" aria-hidden="true"
+                   style="font-size:2rem;color:var(--muted);display:block;margin-bottom:0.75rem;"></i>
+                <p style="font-size:0.875rem;color:var(--muted2);margin:0;">
+                    @(string.IsNullOrWhiteSpace(Model.Search) ? "No other recruiters available right now." : $"No results for '{Model.Search}'")
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="feat-grid">
+                @foreach (var r in Model.OtherRecruiters)
+                {
+                    <div class="feat-card">
+
+                        <!-- Avatar + name -->
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
+                            <div style="width:42px;height:42px;border-radius:50%;background:var(--blue-dim);color:var(--blue);font-size:1rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                @r.FullName.Substring(0, 1).ToUpper()
+                            </div>
+                            <div>
+                                <div class="feat-title" style="font-size:0.95rem;margin:0;">@r.FullName</div>
+                                <div class="feat-desc" style="font-size:0.78rem;margin:0;">@r.Title · @r.Company</div>
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.85rem;">
+                            <span class="feat-tag">
+                                <i class="ti ti-currency-dollar" aria-hidden="true" style="font-size:0.75rem;vertical-align:-1px;"></i>
+                                $@r.HourlyRate/hr
+                            </span>
+                            <span class="feat-tag">
+                                <i class="ti ti-map-pin" aria-hidden="true" style="font-size:0.75rem;vertical-align:-1px;"></i>
+                                @r.Region
+                            </span>
+                        </div>
+
+                        <!-- Skills -->
+                        @if (!string.IsNullOrWhiteSpace(r.Skills))
+                        {
+                            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem;">
+                                @foreach (var skill in r.Skills.Split(',').Take(3))
+                                {
+                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:100px;background:var(--surface2);color:var(--muted2);border:0.5px solid var(--border);">
+                                        @skill.Trim()
+                                    </span>
+                                }
+                                @if (r.Skills.Split(',').Length > 3)
+                                {
+                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:100px;background:var(--surface2);color:var(--muted);border:0.5px solid var(--border);">
+                                        +@(r.Skills.Split(',').Length - 3) more
+                                    </span>
+                                }
+                            </div>
+                        }
+
+                        <!-- Book button -->
+                        <a asp-controller="Bookings"
+                           asp-action="Create"
+                           asp-route-recruiterId="@r.Id"
+                           class="btn-primary"
+                           style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;padding:0.55rem;">
+                            <i class="ti ti-calendar-plus" aria-hidden="true"></i> Book Session
+                        </a>
+
+                    </div>
+                }
+            </div>
+        }
+
     </div>
 
 </div>

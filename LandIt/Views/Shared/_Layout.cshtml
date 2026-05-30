@@ -62,7 +62,7 @@
                         <div class="nav-links">
                             <a href="/#features" style="text-decoration:none;">Features</a>
                             <a href="/Account/Recruiters" style="text-decoration:none;">Recruiters</a>
-                            <a href="/Account/Pricing" style="text-decoration:none;">Pricing</a>
+                            <a href="/Home/Pricing" style="text-decoration:none;">Pricing</a>
                         </div>
                     }
 
@@ -72,29 +72,23 @@
                         </button>
 
                     <!--Show Menu and Profile if the User is Logged in-->
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            var currentUser = await UserManager.GetUserAsync(User);
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        var currentUser = await UserManager.GetUserAsync(User);
 
-                            <a href="/Account/DashboardRouter" class="btn-primary btn-large">
-                                Go to Dashboard
-                            </a>
-
-                            <a href="/Account/ProfileRouter" class="nav-avatar">
-                                @if (!string.IsNullOrEmpty(currentUser?.Photo))
-                                {
-                                    <img src="@currentUser.Photo" alt="Profile" />
-                                }
-                                else
-                                {
-                                    <span>@currentUser?.FullName?.Substring(0, 1).ToUpper()</span>
-                                }
-                            </a>
-                        }
-                        else
-                        {
-                            <a href="/Account/Register" class="btn-nav">Get started</a>
-                        }
+                        <a href="/Account/ProfileRouter" class="nav-avatar">
+                            @if (!string.IsNullOrEmpty(currentUser?.Photo))
+                            {
+                                <img src="@currentUser.Photo" alt="Profile" />
+                            }
+                            else
+                            {
+                                <span>@currentUser?.FullName?.Substring(0, 1).ToUpper()</span>
+                            }
+                        </a>
+                    }
+                        @* <a href="/Account/Register" class="btn-nav">Get started</a> *@
+                        
             </div>
         </nav>
 
@@ -117,8 +111,6 @@
         @if (ViewData["UseBootstrap"] is true)
         {
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        @* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> *@
-
         }
 
         @await RenderSectionAsync("Scripts", required: false)

@@ -29,6 +29,9 @@ namespace LandIt.Controllers
 
         public IActionResult Contact() => View();
 
+        public IActionResult Pricing() => View();
+
+
 
         // (when the user submits the contact form)
         [HttpPost]
@@ -53,6 +56,8 @@ namespace LandIt.Controllers
                 return View(model);
             }
         }
+
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error() => View(new ErrorViewModel

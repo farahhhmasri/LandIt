@@ -25,10 +25,9 @@
 
             @if (User.Identity?.IsAuthenticated == true)
             {
-                @* <a href="/Account/Dashboard" class="btn-primary btn-large">Go to Dashboard</a> *@
-            <a href="/Account/DashboardRouter" class="btn-primary btn-large">
-                Go to Dashboard
-            </a>
+                <a href="/Account/DashboardRouter" class="btn-primary btn-large">
+                    Go to Dashboard
+                </a>
             }
             else
             {
